@@ -8,6 +8,8 @@ name = "pypi"
 [packages]
 flask = "*"
 gunicorn = "*"
+keras = "*"
+tensorflow = "*"
 
 [requires]
 python_version = "2.7"
