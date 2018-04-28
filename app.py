@@ -8,14 +8,16 @@ def hello():
 
 @app.route("/ssd")
 def ssd_test():
-    from keras import backend as K
 
+    import matplotlib
+    matplotlib.use("Agg")
+
+    from keras import backend as K
     import keras.preprocessing.image as kg
     from keras.optimizers import Adam
     import scipy
     from scipy.misc import imread
     import numpy as np
-    #from matplotlib import pyplot as plt
 
     from ssd_keras_1_master.keras_ssd300 import ssd_300
     from ssd_keras_1_master.keras_ssd_loss import SSDLoss
