@@ -27,7 +27,7 @@ from ssd_keras_1_master.ssd_box_encode_decode_utils import decode_y, decode_y2
 IMAGE_HEIGHT = 300
 IMAGE_WIDTH = 300
 
-COCO_WEIGHTS_FILENAME = "ssd_keras_1_master/VGG_coco_SSD_300x300_iter_400000.h5"
+COCO_WEIGHTS_FILENAME = "ssd_keras_1_master/VGG_coco_SSD_300x300_iter_400000.h5__"
 VOC_WEIGHTS_FILENAME = ""
 
 MS_COCO_ANNOTATIONS_FILENAME = 'ssd_keras_1_master/datasets/MicrosoftCOCO/annotations/COCO_classes_to_names.pickle'
