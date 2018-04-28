@@ -21,8 +21,6 @@ def ssd_test():
     from ssd_keras_1_master.keras_ssd_loss import SSDLoss
     from ssd_keras_1_master.ssd_box_encode_decode_utils import decode_y, decode_y2
 
-    from coco_utils import get_coco_category_maps
-
     from analyse_food import test_ssd as ts
     reload(ts)
 
