@@ -12,7 +12,6 @@ keras = "*"
 tensorflow = "*"
 pillow = "*"
 matplotlib = "*"
-pycocotools = "*"
 
 [requires]
 python_version = "2.7"
