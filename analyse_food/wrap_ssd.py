@@ -40,8 +40,13 @@ MS_COCO_ANNOTATIONS_FILENAME = os.path.dirname(
 #############################################################################
 
 # image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/fish-bike.jpg"
-image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/bananas.jpg"
+# image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/bananas.jpg"
+# image_filename = "/Users/colinrawlings/Desktop/htc18/examples/banana_pair.jpg"
+image_filename = "/Users/colinrawlings/Desktop/htc18/examples/banana_rotten.jpg"
+
 dataset = "COCO"
+
+confidence_thresh = 0.45
 
 
 #############################################################################
@@ -129,7 +134,7 @@ def get_images(image_paths):
 
 #############################################################################
 
-def detect_objects(input_images, model):
+def detect_objects(input_images, model, confidence_thresh):
     """
 
     :param input_images:
@@ -139,7 +144,7 @@ def detect_objects(input_images, model):
 
     y_predicted = model.predict(input_images)
     y_predicted_decoded = decode_y(y_predicted,
-                                   confidence_thresh=0.25,
+                                   confidence_thresh=confidence_thresh,
                                    iou_threshold=0.45,
                                    top_k=200,
                                    input_coords='centroids',
@@ -325,7 +330,7 @@ def display_results(original_images, processed_results,
 
 #############################################################################
 
-def analyse_image(image_filepath, dataset,
+def analyse_image(image_filepath, dataset, confidence_thresh,
                   text_output=True, graphical_output=True):
     """
 
@@ -338,7 +343,7 @@ def analyse_image(image_filepath, dataset,
 
     original_images, input_images = get_images([image_filepath])
 
-    raw_results = detect_objects(input_images, model)
+    raw_results = detect_objects(input_images, model, confidence_thresh)
 
     processed_results = analyse_results(dataset, original_images, raw_results)
 
@@ -351,5 +356,5 @@ def analyse_image(image_filepath, dataset,
 #############################################################################
 
 if __name__ == "__main__":
-    results, log, fig, ax = analyse_image(image_filename, dataset)
+    results, log, fig, ax = analyse_image(image_filename, dataset, confidence_thresh)
     plt.show()
