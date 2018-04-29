@@ -1,6 +1,6 @@
 """
 
-copy across the notebook for clarity
+wrap ssd-1 ready for correlating output from heatmap and ssd modules
 
 """
 
@@ -17,9 +17,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 
-from ssd_keras_1_master.keras_ssd300 import ssd_300
-from ssd_keras_1_master.keras_ssd_loss import SSDLoss
-from ssd_keras_1_master.ssd_box_encode_decode_utils import decode_y, decode_y2
+from keras_ssd300 import ssd_300
+from keras_ssd_loss import SSDLoss
+from ssd_box_encode_decode_utils import decode_y, decode_y2
 
 #############################################################################
 # Constants
@@ -28,19 +28,20 @@ from ssd_keras_1_master.ssd_box_encode_decode_utils import decode_y, decode_y2
 IMAGE_HEIGHT = 300
 IMAGE_WIDTH = 300
 
-COCO_WEIGHTS_FILENAME = os.path.join(os.path.dirname(__file__),"../ssd_keras_1_master/VGG_coco_SSD_300x300_iter_400000.h5__")
+COCO_WEIGHTS_FILENAME = os.path.join(os.path.dirname(__file__),
+                                     "../ssd_keras_1_master/VGG_coco_SSD_300x300_iter_400000.h5__")
 VOC_WEIGHTS_FILENAME = ""
 
-MS_COCO_ANNOTATIONS_FILENAME = os.path.dirname(__file__)+'/../ssd_keras_1_master/datasets/MicrosoftCOCO/annotations/COCO_classes_to_names.pickle'
-
+MS_COCO_ANNOTATIONS_FILENAME = os.path.dirname(
+    __file__) + '/../ssd_keras_1_master/datasets/MicrosoftCOCO/annotations/COCO_classes_to_names.pickle'
 
 #############################################################################
 # Settings
 #############################################################################
 
 # image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/fish-bike.jpg"
-# image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/apples.jpg"
-# dataset = "COCO"
+image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/bananas.jpg"
+dataset = "COCO"
 
 
 #############################################################################
@@ -138,7 +139,7 @@ def detect_objects(input_images, model):
 
     y_predicted = model.predict(input_images)
     y_predicted_decoded = decode_y(y_predicted,
-                                   confidence_thresh=0.5,
+                                   confidence_thresh=0.25,
                                    iou_threshold=0.45,
                                    top_k=200,
                                    input_coords='centroids',
@@ -147,6 +148,58 @@ def detect_objects(input_images, model):
                                    img_width=IMAGE_WIDTH)
 
     return y_predicted_decoded
+
+
+#############################################################################
+
+def analyse_results(dataset, original_images, raw_results):
+    """
+
+    :param names_from_classes:
+    :param raw_results: output from ssdXXX.decode()
+    :return: list of dictionaries with keys: name, conf <confidence interval>, bbox (in input units)
+
+    """
+
+    if dataset == "VOC":
+        names_from_classes = get_VOC_names_from_class()
+    elif dataset == "COCO":
+        names_from_classes = get_COCO_names_from_class()
+    else:
+        raise ValueError("Unrecognised dataset: {}".format(dataset))
+
+    #
+
+    boxes = raw_results[0]
+    num_boxes = len(boxes)
+
+    if num_boxes == 0:
+        return list()
+
+    processed_results = list()
+
+    for box_number in range(num_boxes):
+        box = boxes[box_number]
+        class_id = int(box[0])
+
+        name = names_from_classes[class_id]
+
+        xmin = box[-4] * original_images[0].shape[1] / IMAGE_WIDTH
+        ymin = box[-3] * original_images[0].shape[0] / IMAGE_HEIGHT
+        xmax = box[-2] * original_images[0].shape[1] / IMAGE_WIDTH
+        ymax = box[-1] * original_images[0].shape[0] / IMAGE_HEIGHT
+
+        processed_result = dict(class_id=class_id,
+                                name=name,
+                                conf=box[1],
+                                xmin=xmin,
+                                ymin=ymin,
+                                xmax=xmax,
+                                ymax=ymax)
+
+        processed_results.append(processed_result)
+
+    return processed_results
 
 
 #############################################################################
@@ -182,43 +235,35 @@ def get_COCO_names_from_class():
 
 #############################################################################
 
-def display_text_results(dataset, original_images, results):
+def display_text_results(processed_results):
     """
 
-    :param dataset: "COCO", "VOC"
-    :param original_images:
-    :param results:
+    :param processed_results:
     :return: None
     """
 
-    if dataset == "VOC":
-        names_from_classes = get_VOC_names_from_class()
-    elif dataset == "COCO":
-        names_from_classes = get_COCO_names_from_class()
-    else:
-        raise ValueError("Unrecognised dataset: {}".format(dataset))
-
-    boxes = results[0]
-    num_boxes = len(boxes)
+    num_boxes = len(processed_results)
 
     log = ""
     log += "Predicted boxes:\r\n"
     log += 'class\tconf\txmin\tymin\txmax\tymax\r\n'
 
     for box_number in range(num_boxes):
-        box = boxes[box_number]
-        class_id = int(box[0])
+        processed_result = processed_results[box_number]
 
-        name = names_from_classes[class_id]
-
-        log += "{}\t{:.2f}\t{:.0f}\t\t{:.0f}\t\t{:.0f}\t\t{:.0f}\r\n".format(name, box[1], box[2], box[3], box[4], box[5])
+        log += "{}\t{:.2f}\t{:.0f}\t\t{:.0f}\t\t{:.0f}\t\t{:.0f}\r\n".format(processed_result["name"],
+                                                                             processed_result["conf"],
+                                                                             processed_result["xmin"],
+                                                                             processed_result["ymin"],
+                                                                             processed_result["xmax"],
+                                                                             processed_result["ymax"])
 
     return log
 
 
 #############################################################################
 
-def display_graphical_results(dataset, original_images, results,
+def display_graphical_results(original_images, processed_results,
                               fig_width_in=5, fig_height_in=4):
     """
 
@@ -228,15 +273,7 @@ def display_graphical_results(dataset, original_images, results,
     :return:
     """
 
-    if dataset == "VOC":
-        names_from_classes = get_VOC_names_from_class()
-    elif dataset == "COCO":
-        names_from_classes = get_COCO_names_from_class()
-    else:
-        raise ValueError("Unrecognised dataset: {}".format(dataset))
-
-    boxes = results[0]
-    num_boxes = len(boxes)
+    num_boxes = len(processed_results)
 
     colors = plt.cm.hsv(np.linspace(0, 1, num_boxes)).tolist()
 
@@ -249,29 +286,21 @@ def display_graphical_results(dataset, original_images, results,
     ax.imshow(original_images[0])
 
     for box_number in range(num_boxes):
-        box = boxes[box_number]
-        class_id = int(box[0])
+        processed_result = processed_results[box_number]
 
-        name = names_from_classes[class_id]
-
-        # Transform the predicted bounding boxes for the 300x300 image to the original image dimensions.
-        xmin = box[-4] * original_images[0].shape[1] / IMAGE_WIDTH
-        ymin = box[-3] * original_images[0].shape[0] / IMAGE_HEIGHT
-        xmax = box[-2] * original_images[0].shape[1] / IMAGE_WIDTH
-        ymax = box[-1] * original_images[0].shape[0] / IMAGE_HEIGHT
-        color = colors[0]
-        label = '{}: {:.2f}'.format(name, box[1])
+        color = colors[box_number]
+        label = '{}: {:.2f}'.format(processed_result["name"], processed_result["conf"])
         ax.add_patch(
-            plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, color=color, fill=False, linewidth=2))
-        ax.text(xmin, ymin, label, size='x-large', color='white', bbox={'facecolor': color, 'alpha': 0.65})
+            plt.Rectangle((processed_result["xmin"], processed_result["ymin"]), processed_result["xmax"] - processed_result["xmin"],
+                          processed_result["ymax"] - processed_result["ymin"], color=color, fill=False, linewidth=2))
+        ax.text(processed_result["xmin"], processed_result["ymin"], label, size='x-large', color='white', bbox={'facecolor': color, 'alpha': 0.65})
 
     return fig, ax
 
 
 #############################################################################
 
-def display_results(dataset,
-                    original_images, results,
+def display_results(original_images, processed_results,
                     text_output=True, graphical_output=True):
     """
 
@@ -283,13 +312,13 @@ def display_results(dataset,
     :return:
     """
 
-    log = display_text_results(dataset, original_images, results)
+    log = display_text_results(processed_results)
     if text_output:
         print(log)
 
     fig, ax = None, None
     if graphical_output:
-        fig, ax = display_graphical_results(dataset, original_images, results)
+        fig, ax = display_graphical_results(original_images, processed_results)
 
     return log, fig, ax
 
@@ -309,16 +338,18 @@ def analyse_image(image_filepath, dataset,
 
     original_images, input_images = get_images([image_filepath])
 
-    results = detect_objects(input_images, model)
+    raw_results = detect_objects(input_images, model)
 
-    log, fig, ax = display_results(dataset, original_images, results,
+    processed_results = analyse_results(dataset, original_images, raw_results)
+
+    log, fig, ax = display_results(original_images, processed_results,
                                    text_output=text_output, graphical_output=graphical_output)
 
-    return results, log, fig, ax
+    return processed_results, log, fig, ax
 
 
 #############################################################################
 
 if __name__ == "__main__":
     results, log, fig, ax = analyse_image(image_filename, dataset)
-
+    plt.show()
