@@ -30,7 +30,10 @@ def ssd_test():
     dataset="COCO"
 
     results, log, fig, ax = ts.analyse_image(image_filename, dataset,
-                                          False, False)
+                                          text_output=False, graphical_output=True)
+
+    if fig is not None:
+        fig.savefig("out.png")
 
     return log
 

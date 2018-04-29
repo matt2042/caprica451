@@ -242,6 +242,7 @@ def display_graphical_results(dataset, original_images, results,
 
     #
 
+    plt.ioff()
     fig, ax = plt.subplots(1, 1)
     fig.set_size_inches(fig_width_in, fig_height_in)
 
@@ -320,3 +321,4 @@ def analyse_image(image_filepath, dataset,
 
 if __name__ == "__main__":
     results, log, fig, ax = analyse_image(image_filename, dataset)
+
