@@ -25,8 +25,8 @@ from ssd_box_encode_decode_utils import decode_y, decode_y2
 # Constants
 #############################################################################
 
-IMAGE_HEIGHT = 300
-IMAGE_WIDTH = 300
+IMAGE_HEIGHT = 500
+IMAGE_WIDTH = 922
 
 COCO_WEIGHTS_FILENAME = os.path.join(os.path.dirname(__file__),
                                      "../ssd_keras_1_master/VGG_coco_SSD_300x300_iter_400000.h5__")
@@ -40,7 +40,7 @@ MS_COCO_ANNOTATIONS_FILENAME = os.path.dirname(
 #############################################################################
 
 # image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/fish-bike.jpg"
-image_filename = "/Users/colinrawlings/Desktop/htc18/refs/ssd_keras-1-master/examples/bananas.jpg"
+image_filename = "C:/caprica451/analyse_food/shelfday5.jpg"
 dataset = "COCO"
 
 
@@ -139,7 +139,7 @@ def detect_objects(input_images, model):
 
     y_predicted = model.predict(input_images)
     y_predicted_decoded = decode_y(y_predicted,
-                                   confidence_thresh=0.25,
+                                   confidence_thresh=0.65,
                                    iou_threshold=0.45,
                                    top_k=200,
                                    input_coords='centroids',
@@ -230,7 +230,7 @@ def get_COCO_names_from_class():
 
     import pickle
 
-    return pickle.load(open(MS_COCO_ANNOTATIONS_FILENAME, 'r'))
+    return ['X'] * 81
 
 
 #############################################################################
