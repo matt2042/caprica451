@@ -20,6 +20,7 @@ import os
 from keras_ssd300 import ssd_300
 from keras_ssd_loss import SSDLoss
 from ssd_box_encode_decode_utils import decode_y, decode_y2
+import json
 
 #############################################################################
 # Constants
@@ -345,11 +346,15 @@ def analyse_image(image_filepath, dataset,
     log, fig, ax = display_results(original_images, processed_results,
                                    text_output=text_output, graphical_output=graphical_output)
 
-    return processed_results, log, fig, ax
+    processed_results_json = json.dumps(processed_results)
+
+    print(json.dumps(processed_results_json, indent=4, sort_keys=True))
+
+    return processed_results, processed_results_json, log, fig, ax
 
 
 #############################################################################
 
 if __name__ == "__main__":
-    results, log, fig, ax = analyse_image(image_filename, dataset)
+    results, results_json, log, fig, ax = analyse_image(image_filename, dataset)
     plt.show()
